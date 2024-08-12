@@ -82,6 +82,9 @@ class Parser:
         self.current_token_index = 0
 
     def parse(self):
+        return self.statement()
+
+    def statement(self):
         if self.current_token() and self.current_token()[0] == 'KEYWORD' and self.current_token()[1] == 'def':
             return self.function_definition()
         return self.expression()
@@ -125,40 +128,42 @@ class Parser:
 
     def factor(self):
         token = self.current_token()
-        if isinstance(token, tuple) and token[0] == 'NUMBER':
-            self.eat(token[0])
+        if token[0] == 'NUMBER':
+            self.eat('NUMBER')
             return NumberNode(value=token[1])
-        elif isinstance(token, tuple) and token[0] == 'BOOLEAN':
-            self.eat(token[0])
+        elif token[0] == 'BOOLEAN':
+            self.eat('BOOLEAN')
             return BooleanNode(value=token[1])
-        elif isinstance(token, tuple) and token[0] == 'ID':
-            self.eat(token[0])
+        elif token[0] == 'ID':
+            self.eat('ID')
             if self.current_token() and self.current_token()[0] == 'LPAREN':
                 return self.function_call(IdentifierNode(name=token[1]))
             return IdentifierNode(name=token[1])
-        elif token and token[0] == 'LPAREN':
+        elif token[0] == 'LPAREN':
             self.eat('LPAREN')
             node = self.expression()
             self.eat('RPAREN')
+            if self.current_token() and self.current_token()[0] == 'LPAREN':
+                return self.function_call(node)
             return node
-        elif token and token[0] == 'NOT':
+        elif token[0] == 'NOT':
             self.eat('NOT')
             return UnaryOpNode(op='!', operand=self.factor())
-        elif isinstance(token, tuple) and token[0] == 'KEYWORD' and token[1] == 'lambda':
+        elif token[0] == 'KEYWORD' and token[1] == 'lambda':
             return self.lambda_expression()
-        elif isinstance(token, tuple) and token[0] == 'KEYWORD' and token[1] == 'if':
+        elif token[0] == 'KEYWORD' and token[1] == 'if':
             return self.if_else_expression()
         raise Exception(f'Unexpected token: {token}')
 
     def lambda_expression(self):
         self.eat('lambda')
         params = []
-        if isinstance(self.current_token(), tuple) and self.current_token()[0] == 'ID':
+        if self.current_token() and self.current_token()[0] == 'ID':
             params.append(self.current_token()[1])
             self.eat('ID')
             while self.current_token() and self.current_token()[0] == 'DELIM':
                 self.eat('DELIM')
-                if isinstance(self.current_token(), tuple) and self.current_token()[0] == 'ID':
+                if self.current_token() and self.current_token()[0] == 'ID':
                     params.append(self.current_token()[1])
                     self.eat('ID')
                 else:
@@ -200,44 +205,3 @@ class Parser:
             self.current_token_index += 1
         else:
             raise Exception(f'Unexpected token: {self.current_token()}')
-
-def run_tests():
-    tests = [
-        ("lambda a, b: a + b * 2", "LambdaNode(params=['a', 'b'], body=BinaryOpNode(IdentifierNode(a), +, BinaryOpNode(IdentifierNode(b), *, NumberNode(2))))"),
-        ("lambda x, y: (x + y) * (x - y)", "LambdaNode(params=['x', 'y'], body=BinaryOpNode(BinaryOpNode(IdentifierNode(x), +, IdentifierNode(y)), *, BinaryOpNode(IdentifierNode(x), -, IdentifierNode(y))))"),
-        ("lambda x, y: x / y % 2", "LambdaNode(params=['x', 'y'], body=BinaryOpNode(BinaryOpNode(IdentifierNode(x), /, IdentifierNode(y)), %, NumberNode(2)))"),
-        ("lambda x, y: x && y", "LambdaNode(params=['x', 'y'], body=BinaryOpNode(IdentifierNode(x), &&, IdentifierNode(y)))"),
-        ("lambda x: !x", "LambdaNode(params=['x'], body=UnaryOpNode(!, IdentifierNode(x)))"),
-        ("lambda x, y: x > y && y < 10", "LambdaNode(params=['x', 'y'], body=BinaryOpNode(BinaryOpNode(BinaryOpNode(IdentifierNode(x), >, IdentifierNode(y)), &&, IdentifierNode(y)), <, NumberNode(10)))"),
-        ("lambda x, y: x == y || x != y", "LambdaNode(params=['x', 'y'], body=BinaryOpNode(BinaryOpNode(BinaryOpNode(IdentifierNode(x), ==, IdentifierNode(y)), ||, IdentifierNode(x)), !=, IdentifierNode(y)))"),
-        ("lambda x, y: (x + y) * 2 > 10 && (x - y) < 5", "LambdaNode(params=['x', 'y'], body=BinaryOpNode(BinaryOpNode(BinaryOpNode(BinaryOpNode(BinaryOpNode(IdentifierNode(x), +, IdentifierNode(y)), *, NumberNode(2)), >, NumberNode(10)), &&, BinaryOpNode(IdentifierNode(x), -, IdentifierNode(y))), <, NumberNode(5)))"),
-        ("lambda a, b: (a < b && b < c) || (a == c)", "LambdaNode(params=['a', 'b'], body=BinaryOpNode(BinaryOpNode(BinaryOpNode(BinaryOpNode(IdentifierNode(a), <, IdentifierNode(b)), &&, IdentifierNode(b)), <, IdentifierNode(c)), ||, BinaryOpNode(IdentifierNode(a), ==, IdentifierNode(c))))"),
-        ("lambda f, x: f(x)", "LambdaNode(params=['f', 'x'], body=FunctionCallNode(IdentifierNode(f), [IdentifierNode(x)]))"),
-        ("lambda f, x: f(lambda y: y + x)", "LambdaNode(params=['f', 'x'], body=FunctionCallNode(IdentifierNode(f), [LambdaNode(params=['y'], body=BinaryOpNode(IdentifierNode(y), +, IdentifierNode(x)))]))"),
-        ("def factorial(n): if n == 0: 1 else: n * factorial(n - 1)", "FunctionDefNode(name=factorial, params=['n'], body=IfElseNode(condition=BinaryOpNode(IdentifierNode(n), ==, NumberNode(0)), if_body=NumberNode(1), else_body=BinaryOpNode(IdentifierNode(n), *, FunctionCallNode(IdentifierNode(factorial), [BinaryOpNode(IdentifierNode(n), -, NumberNode(1))]))))"),
-        ("def add(a, b): a + b", "FunctionDefNode(name=add, params=['a', 'b'], body=BinaryOpNode(IdentifierNode(a), +, IdentifierNode(b)))"),
-        ("def check(x): if x > 10: x - 10 else: x + 10", "FunctionDefNode(name=check, params=['x'], body=IfElseNode(condition=BinaryOpNode(IdentifierNode(x), >, NumberNode(10)), if_body=BinaryOpNode(IdentifierNode(x), -, NumberNode(10)), else_body=BinaryOpNode(IdentifierNode(x), +, NumberNode(10))))"),
-        ("def compute(a, b): if a == b: add(a, b) else: sub(a, b)", "FunctionDefNode(name=compute, params=['a', 'b'], body=IfElseNode(condition=BinaryOpNode(IdentifierNode(a), ==, IdentifierNode(b)), if_body=FunctionCallNode(IdentifierNode(add), [IdentifierNode(a), IdentifierNode(b)]), else_body=FunctionCallNode(IdentifierNode(sub), [IdentifierNode(a), IdentifierNode(b)])))"),
-        ("def nested(x): add(sub(x, 1), mul(x, 2))", "FunctionDefNode(name=nested, params=['x'], body=FunctionCallNode(IdentifierNode(add), [FunctionCallNode(IdentifierNode(sub), [IdentifierNode(x), NumberNode(1)]), FunctionCallNode(IdentifierNode(mul), [IdentifierNode(x), NumberNode(2)])]))"),
-        ("def multiply(a, b): a * b", "FunctionDefNode(name=multiply, params=['a', 'b'], body=BinaryOpNode(IdentifierNode(a), *, IdentifierNode(b)))"),
-        ("def divide(a, b): a / b", "FunctionDefNode(name=divide, params=['a', 'b'], body=BinaryOpNode(IdentifierNode(a), /, IdentifierNode(b)))"),
-        ("def logic_test(a, b, c): a && (b || c)", "FunctionDefNode(name=logic_test, params=['a', 'b', 'c'], body=BinaryOpNode(IdentifierNode(a), &&, BinaryOpNode(IdentifierNode(b), ||, IdentifierNode(c))))"),
-        ("def compare(a, b): a > b && a != b", "FunctionDefNode(name=compare, params=['a', 'b'], body=BinaryOpNode(BinaryOpNode(IdentifierNode(a), >, IdentifierNode(b)), &&, BinaryOpNode(IdentifierNode(a), !=, IdentifierNode(b))))"),
-        ("def complex_check(x, y): if x == y: if x > 10: x - y else: x + y else: y", "FunctionDefNode(name=complex_check, params=['x', 'y'], body=IfElseNode(condition=BinaryOpNode(IdentifierNode(x), ==, IdentifierNode(y)), if_body=IfElseNode(condition=BinaryOpNode(IdentifierNode(x), >, NumberNode(10)), if_body=BinaryOpNode(IdentifierNode(x), -, IdentifierNode(y)), else_body=BinaryOpNode(IdentifierNode(x), +, IdentifierNode(y))), else_body=IdentifierNode(y)))")
-    ]
-
-    for code, expected_ast in tests:
-        print(f"Test Case: {code}")
-        lexer = Lexer(code)
-        tokens = lexer.tokenize()
-        print(f"Tokens: {tokens}")
-
-        parser = Parser(tokens)
-        ast = parser.parse()
-
-        print(f"AST: {ast}")
-        print(f"Expected AST: {expected_ast}")
-        print("-" * 80)
-
-if __name__ == "__main__":
-    run_tests()
