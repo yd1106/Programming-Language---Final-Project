@@ -9,17 +9,18 @@ class Lexer:
     def tokenize(self):
         token_specification = [
             ('NUMBER', r'\d+'),  # Integer numbers
-            ('BOOLEAN', r'\b(True|False)\b'),  # Boolean values
             ('KEYWORD', r'\b(lambda|if|else|return|def)\b'),  # Keywords
             ('ID', r'[A-Za-z_]\w*'),  # Identifiers (names of variables or functions)
             ('OP', r'[+\-*/%]'),  # Arithmetic operators
             ('LPAREN', r'\('),  # Left parenthesis
             ('RPAREN', r'\)'),  # Right parenthesis
+            ('BOOLEAN', r'(True|False)'),  # Boolean values
             ('COMPARE', r'==|!=|<=|>=|<|>'),  # Comparison operators
             ('LOGICAL', r'&&|\|\|'),  # Logical operators
             ('NOT', r'!'),  # Logical NOT operator
             ('NEWLINE', r'\n'),  # Newline characters
             ('SKIP', r'[ \t]+'),  # Spaces and tabs
+            ('COMMENT', r'#.*'),  # Comments
             ('DELIM', r'[,]'),  # Comma delimiter
             ('COLON', r':'),  # Colon delimiter
             ('MISMATCH', r'.'),  # Any other character (for error handling)
@@ -33,17 +34,21 @@ class Lexer:
 
         while mo is not None:
             typ = mo.lastgroup
-            value = mo.group(typ)
             if typ == 'NUMBER':
-                value = int(value)
+                value = int(mo.group(typ))
             elif typ == 'BOOLEAN':
-                value = True if value == 'True' else False
-            elif typ == 'SKIP':
+                value = mo.group(typ) == 'True'
+            elif typ == 'ID' and mo.group(typ) in ('True', 'False'):
+                typ = 'BOOLEAN'
+                value = mo.group(typ) == 'True'
+            elif typ == 'SKIP' or typ == 'COMMENT':
                 pos = mo.end()
                 mo = get_token(line, pos)
                 continue
             elif typ == 'MISMATCH':
-                raise RuntimeError(f'Unexpected character {value} at position {pos}')
+                raise RuntimeError(f'Unexpected character {mo.group(typ)} at position {pos}')
+            else:
+                value = mo.group(typ)
             self.tokens.append((typ, value))
             pos = mo.end()
             mo = get_token(line, pos)

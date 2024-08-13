@@ -4,10 +4,13 @@ from my_parser import *
 # Environment class to handle variable scopes and function environments
 class Environment:
     def __init__(self, parent=None):
+        # Store variables in a dictionary
         self.variables = {}
+        # Link to parent environment for nested scopes
         self.parent = parent
 
     def get(self, name):
+        # Retrieve a variable's value from the current or parent environment
         if name in self.variables:
             return self.variables[name]
         elif self.parent:
@@ -16,17 +19,22 @@ class Environment:
             raise Exception(f'Variable {name} not found')
 
     def set(self, name, value):
+        # Set a variable's value in the current environment
         self.variables[name] = value
 
+# Interpreter class to evaluate AST nodes
 class Interpreter:
     def __init__(self):
+        # Global environment for storing variables and functions
         self.global_env = Environment()
+        # Call stack for managing function calls and recursion
         self.call_stack = []
 
     def evaluate(self, node, env=None):
         if env is None:
             env = self.global_env
 
+        # Dynamically call the appropriate evaluation method based on node type
         method_name = f'eval_{type(node).__name__}'
         method = getattr(self, method_name)
         return method(node, env)
@@ -78,6 +86,7 @@ class Interpreter:
             raise Exception(f'Unsupported unary operator: {node.op}')
 
     def eval_LambdaNode(self, node, env):
+        # Return a lambda function that captures the current environment
         def lambda_func(*args):
             new_env = Environment(parent=env)
             for param, arg in zip(node.params, args):
@@ -91,6 +100,7 @@ class Interpreter:
         return func(*args)
 
     def eval_FunctionDefNode(self, node, env):
+        # Define a function that captures the current environment
         def function(*args):
             new_env = Environment(parent=env)
             for param, arg in zip(node.params, args):
@@ -117,20 +127,19 @@ class Interpreter:
 
     def execute_file(self, filename):
         with open(filename, 'r') as file:
-            source_code = file.read()
-        lexer = Lexer(source_code)
-        tokens = lexer.tokenize()
-        parser = Parser(tokens)
-        ast = parser.parse()
-        result = self.evaluate(ast)
-        print(result)
-        return result
+            source_code = file.readlines()
+        for line in source_code:
+            if line.strip() and not line.strip().startswith('#'):
+                print(f"Executing: {line.strip()}")
+                result = self.execute_line(line.strip())
+                print(result)
 
     def repl(self):
         while True:
             try:
                 line = input('lambda> ')
-                self.execute_line(line)
+                result = self.execute_line(line)
+                print(result)
             except Exception as e:
                 print(e)
 
