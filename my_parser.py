@@ -178,7 +178,7 @@ class Parser:
         self.eat('COLON')
         if_body = self.expression()
         if self.current_token() and self.current_token()[0] == 'KEYWORD' and self.current_token()[1] == 'else':
-            self.eat('KEYWORD')
+            self.eat('else')
             self.eat('COLON')
             else_body = self.expression()
         else:
@@ -201,8 +201,8 @@ class Parser:
 
     def eat(self, token_type):
         if self.current_token() and (self.current_token()[0] == token_type or self.current_token()[1] == token_type):
-            print(f"Eating token: {self.current_token()}")  # Debugging line
             self.current_token_index += 1
         else:
-            raise Exception(f'Unexpected token: {self.current_token()}')
-#
+            expected = token_type
+            found = self.current_token()
+            raise Exception(f'Unexpected token: {found}, expected: {expected} at position {self.current_token_index}')

@@ -1,5 +1,5 @@
 import re
-#
+
 class Lexer:
     def __init__(self, source_code):
         self.source_code = source_code
@@ -9,20 +9,20 @@ class Lexer:
     def tokenize(self):
         token_specification = [
             ('NUMBER', r'\d+'),  # Integer numbers
+            ('BOOLEAN', r'\b(True|False)\b'),  # Boolean values
             ('KEYWORD', r'\b(lambda|if|else|return|def)\b'),  # Keywords
             ('ID', r'[A-Za-z_]\w*'),  # Identifiers (names of variables or functions)
             ('OP', r'[+\-*/%]'),  # Arithmetic operators
             ('LPAREN', r'\('),  # Left parenthesis
             ('RPAREN', r'\)'),  # Right parenthesis
-            ('BOOLEAN', r'(True|False)'),  # Boolean values
             ('COMPARE', r'==|!=|<=|>=|<|>'),  # Comparison operators
             ('LOGICAL', r'&&|\|\|'),  # Logical operators
             ('NOT', r'!'),  # Logical NOT operator
             ('NEWLINE', r'\n'),  # Newline characters
             ('SKIP', r'[ \t]+'),  # Spaces and tabs
             ('COMMENT', r'#.*'),  # Comments
-            ('DELIM', r'[,]'),  # Comma delimiter
-            ('COLON', r':'),  # Colon delimiter
+            ('DELIM', r','),
+            ('COLON', r':'),
             ('MISMATCH', r'.'),  # Any other character (for error handling)
         ]
 
@@ -38,15 +38,12 @@ class Lexer:
                 value = int(mo.group(typ))
             elif typ == 'BOOLEAN':
                 value = mo.group(typ) == 'True'
-            elif typ == 'ID' and mo.group(typ) in ('True', 'False'):
-                typ = 'BOOLEAN'
-                value = mo.group(typ) == 'True'
             elif typ == 'SKIP' or typ == 'COMMENT':
                 pos = mo.end()
                 mo = get_token(line, pos)
                 continue
             elif typ == 'MISMATCH':
-                raise RuntimeError(f'Unexpected character {mo.group(typ)} at position {pos}')
+                raise RuntimeError(f'Unexpected character {mo.group(typ)} at position {pos} in line: {line.strip()}')
             else:
                 value = mo.group(typ)
             self.tokens.append((typ, value))
