@@ -1,0 +1,41 @@
+# Define functions
+def add(a, b): a + b
+def multiply(a, b): a * b
+def factorial(n): if n == 0: 1 else: n * factorial(n - 1)
+
+# Function calls
+add(2, 3)      # Expected output: 5
+multiply(3, 4) # Expected output: 12
+factorial(5)   # Expected output: 120
+
+# Lambda function calls
+(lambda x: x + 1)(10)   # Expected output: 11
+(lambda f: f(2))(lambda x: x + 3) # Expected output: 5
+
+# Nested function call
+def make_adder(x): lambda y: x + y
+(make_adder(10))(5) # Expected output: 15
+
+# Recursion to simulate a while loop
+def increment(x): if x < 10: increment(x + 1) else: x
+increment(0) # Expected output: 10
+
+# Boolean and comparison operations
+True && False  # Expected output: False
+True || False  # Expected output: True
+!False         # Expected output: True
+
+3 == 3  # Expected output: True
+3 != 4  # Expected output: True
+3 < 4   # Expected output: True
+4 > 3   # Expected output: True
+3 <= 3  # Expected output: True
+4 >= 3  # Expected output: True
+
+# If-Else expressions
+if True: 1 else: 0  # Expected output: 1
+if False: 1 else: 0 # Expected output: 0
+
+# More complex recursion example
+def decrement(x): if x > 0: decrement(x - 1) else: x
+decrement(10) # Expected output: 0

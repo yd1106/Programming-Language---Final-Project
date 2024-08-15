@@ -1,0 +1,35 @@
+<program> ::= <statement> | <statement> <program>
+
+<statement> ::= <expression> | <function_definition>
+
+<function_definition> ::= "def" <identifier> "(" <parameter_list> ")" ":" <expression>
+
+<parameter_list> ::= <identifier> | <identifier> "," <parameter_list> | ε
+
+<expression> ::= <term> | <expression> <binary_op> <term> | <unary_op> <expression>
+
+<term> ::= <factor> | <term> <binary_op> <factor>
+
+<factor> ::= <number> | <boolean> | <identifier> | <function_call> | <lambda_expression> | <if_else_expression> | "(" <expression> ")"
+
+<function_call> ::= <identifier> "(" <argument_list> ")"
+
+<argument_list> ::= <expression> | <expression> "," <argument_list> | ε
+
+<lambda_expression> ::= "lambda" <parameter_list> ":" <expression>
+
+<if_else_expression> ::= "if" <expression> ":" <expression> "else" ":" <expression>
+
+<binary_op> ::= "+" | "-" | "*" | "/" | "%" | "==" | "!=" | "<=" | ">=" | "<" | ">" | "&&" | "||"
+
+<unary_op> ::= "!"
+
+<number> ::= <digit> | <digit> <number>
+
+<boolean> ::= "True" | "False"
+
+<identifier> ::= <letter> | <letter> <identifier>
+
+<letter> ::= "a" | "b" | ... | "z" | "A" | "B" | ... | "Z" | "_"
+
+<digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
