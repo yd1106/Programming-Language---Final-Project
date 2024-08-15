@@ -54,6 +54,9 @@ def main():
         ("Lambda Within Lambda", "(lambda x: (lambda y: x + y)(2))(3)"),  # Should print 5
         ("Function Within Lambda", "def inner(x, y): x + y\n(lambda x, y: inner(x, y) + x + y)(3, 2)"),  # Should print 10
 
+        # Recursion to Simulate While Loop
+        ("Simulate While Loop", "def increment(x): if x < 10: increment(x * x) else: x\nincrement(3)"),  # Should print 10
+
         # Error Tests
         ("Division by Zero", "10 / 0"),  # Should raise ZeroDivisionError
         ("Lambda Argument Error", "(lambda x, y: x + y)(2)"),  # Should raise Exception
