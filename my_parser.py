@@ -179,37 +179,43 @@ class Parser:
         return node
 
     def factor(self):
-        """
-        Parse a factor.
+        token = self.current_token()
 
-        :return: The corresponding AST node.
-        """
-        token = self.current_token()  # Get the current token
+        # Handle negative numbers
+        if token[0] == 'OP' and token[1] == '-':
+            self.eat('OP')
+            num = self.current_token()
+            if num[0] == 'NUMBER':
+                self.eat('NUMBER')
+                return NumberNode(value=-num[1])
+            else:
+                raise Exception(f'Unexpected token: {num}, expected a number after "-"')
+
         if token[0] == 'NUMBER':
-            self.eat('NUMBER')  # Consume the number
+            self.eat('NUMBER')
             return NumberNode(value=token[1])
         elif token[0] == 'BOOLEAN':
-            self.eat('BOOLEAN')  # Consume the boolean
+            self.eat('BOOLEAN')
             return BooleanNode(value=token[1])
         elif token[0] == 'ID':
-            self.eat('ID')  # Consume the identifier
+            self.eat('ID')
             if self.current_token() and self.current_token()[0] == 'LPAREN':
-                return self.function_call(IdentifierNode(name=token[1]))  # Parse a function call
+                return self.function_call(IdentifierNode(name=token[1]))
             return IdentifierNode(name=token[1])
         elif token[0] == 'LPAREN':
-            self.eat('LPAREN')  # Consume the left parenthesis
-            node = self.expression()  # Parse the expression inside the parentheses
-            self.eat('RPAREN')  # Consume the right parenthesis
+            self.eat('LPAREN')
+            node = self.expression()
+            self.eat('RPAREN')
             if self.current_token() and self.current_token()[0] == 'LPAREN':
-                return self.function_call(node)  # Parse a function call
+                return self.function_call(node)
             return node
         elif token[0] == 'NOT':
-            self.eat('NOT')  # Consume the '!' operator
-            return UnaryOpNode(op='!', operand=self.factor())  # Create a UnaryOpNode
+            self.eat('NOT')
+            return UnaryOpNode(op='!', operand=self.factor())
         elif token[0] == 'KEYWORD' and token[1] == 'lambda':
-            return self.lambda_expression()  # Parse a lambda expression
+            return self.lambda_expression()
         elif token[0] == 'KEYWORD' and token[1] == 'if':
-            return self.if_else_expression()  # Parse an if-else expression
+            return self.if_else_expression()
         raise Exception(f'Unexpected token: {token}')
 
     def lambda_expression(self):
