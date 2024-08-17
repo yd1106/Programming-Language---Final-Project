@@ -39,7 +39,7 @@ This guide explains how to run the custom language interpreter in both interacti
     1
     ```
 
-    To exit the interactive mode, press `Ctrl+C` or type `exit()` and press Enter.
+    To exit the interactive mode, press `Ctrl+C` and press Enter.
 
 ### Full Program Execution Mode
 
