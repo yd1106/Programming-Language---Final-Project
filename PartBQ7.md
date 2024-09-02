@@ -1,17 +1,17 @@
 # Question 7
 
-###Explain the term "lazy evaluation" in the context of the following program:
+### Explain the term "lazy evaluation" in the context of the following program:
 
 ```python
 def generate_values():
- print('Generating values...')
- yield 1
- yield 2
- yield 3
+    print('Generating values...')
+    yield 1
+    yield 2
+    yield 3
 
 def square(x):
- print(f'Squaring {x}')
- return x * x
+    print(f'Squaring {x}')
+    return x * x
 
 print('Eager evaluation:')
 values = list(generate_values())
@@ -21,6 +21,7 @@ print(squared_values)
 print('\nLazy evaluation:')
 squared_values = [square(x) for x in generate_values()]
 print(squared_values)
+
 ```
 ###Answer:
 
