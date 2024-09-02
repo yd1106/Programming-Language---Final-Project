@@ -23,7 +23,7 @@ squared_values = [square(x) for x in generate_values()]
 print(squared_values)
 
 ```
-###Answer:
+### Answer:
 
 In the eager evaluation section, 'generate_values()' is called and all values are generated at once.
 This means that the program consumes memory to store all the values, even if not all of them are needed immediately.
